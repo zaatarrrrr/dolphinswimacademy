@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meet management · Dolphin Swim Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --deep:#05508A; --navy:#0B3A66; --aqua:#4CBB47; --rope:#4CBB47; --coral:#F2644B; --focus:#05508A;
+  --bg:#F5FBF4; --surface:#FFFFFF; --text:#0B2A45; --muted:#3D5D76; --line:#C9E3C6; --link:#05508A; --head-bg:#4CBB47; --head-text:#0B3A66;
+  --ok-bg:#CFF3E2; --ok-tx:#0B5A38; --wait-bg:#FFEFC2; --wait-tx:#6B4C00; --no-bg:#FFD9D2; --no-tx:#7A1E0E;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#06192B; --surface:#0C2A44; --text:#E8F4F8; --muted:#9DB8CC; --line:#1E4565; --link:#86CBF4; --focus:#86CBF4; --head-bg:#4CBB47;
+    --ok-bg:#12432F; --ok-tx:#9BE6C0; --wait-bg:#4A3A0A; --wait-tx:#FFE08A; --no-bg:#58211A; --no-tx:#FFB5A8;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#06192B; --surface:#0C2A44; --text:#E8F4F8; --muted:#9DB8CC; --line:#1E4565; --link:#86CBF4; --focus:#86CBF4; --head-bg:#4CBB47;
+  --ok-bg:#12432F; --ok-tx:#9BE6C0; --wait-bg:#4A3A0A; --wait-tx:#FFE08A; --no-bg:#58211A; --no-tx:#FFB5A8;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:16px;line-height:1.55}
+h1,h2,h3{font-family:'Fredoka','Trebuchet MS',system-ui,sans-serif;line-height:1.2;margin:0}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
+
+header{background:var(--head-bg);color:var(--head-text);position:relative;overflow:hidden}
+.hwrap{max-width:1040px;margin:0 auto;padding:22px 20px 34px;display:flex;align-items:center;gap:14px}
+.hwrap svg{width:58px;height:58px;flex:none}
+.hwrap h1{font-size:clamp(22px,3.4vw,32px);font-weight:700}
+.hwrap p{margin:2px 0 0;color:#0B3158;font-size:16px;font-weight:600}
+.ropeline{height:10px;background:repeating-linear-gradient(90deg,#0B3A66 0 10px,transparent 10px 20px);opacity:.85}
+
+main{max-width:1040px;margin:0 auto;padding:22px 20px 60px}
+.hub{background:var(--surface);border:2px solid var(--line);border-radius:18px;overflow:hidden;display:grid;grid-template-columns:210px 1fr;min-height:520px}
+.side{background:color-mix(in srgb,var(--surface) 90%,var(--aqua));border-right:2px solid var(--line);padding:16px 10px;display:flex;flex-direction:column;gap:4px}
+.meetname{padding:6px 12px 14px;font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+.meetname span{display:block;color:var(--muted);font-weight:400;font-size:14px}
+.tab{all:unset;cursor:pointer;padding:10px 12px;border-radius:10px;font-weight:500;font-size:15px}
+.tab:hover{background:color-mix(in srgb,var(--aqua) 20%,transparent)}
+.tab[aria-selected="true"]{background:var(--deep);color:#fff}
+.tab:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.panel{padding:24px 26px;min-width:0}
+.panel h2{font-size:20px;margin-bottom:6px}
+.d{color:var(--muted);margin:0 0 18px}
+@media(max-width:780px){
+  .hub{grid-template-columns:1fr}
+  .side{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:2px solid var(--line);padding:10px}
+  .meetname{display:none}.tab{white-space:nowrap}.panel{padding:18px}
+}
+
+.stats{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:18px}
+.stat b{display:block;font-family:'Fredoka',sans-serif;font-size:24px}
+.stat span{color:var(--muted);font-size:14px}
+
+.addbox{display:grid;grid-template-columns:1.4fr 1.2fr .8fr auto;gap:10px;align-items:end;padding:14px;border:2px solid var(--line);border-radius:14px;margin-bottom:18px}
+.addbox.editing{border-color:var(--rope)}
+.f{display:grid;gap:4px;min-width:0}
+.f label{font-weight:600;font-size:14px}
+input,select,textarea{font:16px 'Nunito',sans-serif;padding:10px 12px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--text);width:100%;min-width:0}
+textarea{resize:vertical;min-height:110px}
+input[type=checkbox]{width:auto;accent-color:var(--deep)}
+@media(max-width:780px){.addbox{grid-template-columns:1fr 1fr}.addbox .f:first-child{grid-column:1/-1}.addbox .btnrow{grid-column:1/-1}}
+
+.btn{border:0;cursor:pointer;font:600 15px 'Nunito',sans-serif;padding:10px 18px;border-radius:14px;background:var(--deep);color:#fff}
+.btn:hover{filter:brightness(1.15)}
+.btn.alt{background:transparent;color:var(--text);box-shadow:inset 0 0 0 2px var(--line)}
+.btn.yellow{background:var(--rope);color:#0B3A66}.btn.yellow:hover{filter:brightness(.95)}
+.btn.tiny{padding:5px 12px;font-size:14px}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+.toolbar label{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.toolbar select{width:auto;padding:6px 10px}
+
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);font-size:15px;vertical-align:middle}
+th{font-weight:600;font-size:14px;color:var(--muted);background:color-mix(in srgb,var(--surface) 93%,var(--aqua))}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.pill{font-size:13px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.pill.ok{background:var(--ok-bg);color:var(--ok-tx)}
+.pill.wait{background:var(--wait-bg);color:var(--wait-tx)}
+.pill.no{background:var(--no-bg);color:var(--no-tx)}
+.empty{padding:34px 18px;text-align:center;color:var(--muted);border:2px dashed var(--line);border-radius:14px}
+.toast{margin-top:14px;font-weight:600;color:var(--link);min-height:1.5em}
+.err{color:var(--no-tx);font-weight:600;margin:-6px 0 12px;min-height:1.2em}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}}
+.qrow{display:grid;grid-template-columns:1fr 150px 120px;gap:12px;align-items:center;padding:10px 14px;border-top:1px solid var(--line)}
+.qrow:first-child{border-top:0}
+@media(max-width:600px){.qrow{grid-template-columns:1fr 120px}.qrow .pill{grid-column:1/-1;justify-self:start}}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tools .btn[aria-pressed="true"]{background:var(--deep);color:#fff;box-shadow:none}
+.note{font-size:14px;color:var(--muted);margin-top:10px}
+.linkbtn{all:unset;cursor:pointer;font-weight:600;color:var(--link);text-decoration:underline;text-underline-offset:3px}
+.linkbtn:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
+.linkbtn.cur{color:var(--text)}
+.addbox5{display:grid;grid-template-columns:1.1fr .8fr 1fr 1.2fr auto;gap:10px;align-items:end;padding:14px;border:2px solid var(--line);border-radius:14px;margin-bottom:12px}
+@media(max-width:780px){.addbox5{grid-template-columns:1fr 1fr}.addbox5 .btnrow{grid-column:1/-1}}
+.chartbox{border:1px solid var(--line);border-radius:12px;padding:14px 14px 8px;margin:18px 0}
+.chartbox h3{font-size:16px;margin-bottom:2px}
+.addbox3{display:grid;grid-template-columns:1.6fr 1fr auto;gap:10px;align-items:end;padding:14px;border:2px solid var(--line);border-radius:14px;margin-bottom:12px}
+.addbox4{display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:10px;align-items:end;padding:14px;border:2px solid var(--line);border-radius:14px;margin-bottom:12px}
+@media(max-width:780px){.addbox3{grid-template-columns:1fr 1fr}.addbox3 .f:first-child{grid-column:1/-1}.addbox3 .btnrow{grid-column:1/-1}.addbox4{grid-template-columns:1fr 1fr}.addbox4 .f:first-child{grid-column:1/-1}.addbox4 .btnrow{grid-column:1/-1}}
+.sec{font-family:'Fredoka',sans-serif;font-size:16px;margin:26px 0 10px}
+#fbov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.fbbox{background:var(--surface);color:var(--text);border-radius:16px;padding:22px;max-width:680px;width:100%;max-height:92%;overflow:auto}
+.fbbox h3{font-size:18px;margin-bottom:6px}
+#fbta{min-height:220px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;white-space:pre;overflow:auto}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="hwrap">
+    <svg viewBox="64 82 172 172" role="img" aria-label="Dolphin Swim Academy logo"><circle cx="150" cy="168" r="84" fill="#05508A"/><g fill="#fff"><path d="M 134 156 C 138 142 142 128 148 117 C 156 124 162 134 164 144 C 180 141 197 149 205 163 C 211 167 216 170 212 174 C 207 177 199 176 192 176 C 186 177 183 180 182 185 C 176 186 168 190 168 197 C 174 202 187 200 197 190 C 194 210 176 222 154 222 C 130 222 116 208 120 192 C 123 180 133 174 134 164 Z"/><rect x="108" y="150" width="9" height="9"/><rect x="119" y="141" width="9" height="9"/><rect x="100" y="166" width="9" height="9"/><rect x="113" y="176" width="9" height="9"/><rect x="104" y="188" width="8" height="8"/><rect x="122" y="130" width="7" height="7"/><rect x="96" y="204" width="7" height="7"/></g><circle cx="185" cy="157" r="3.6" fill="#05508A"/></svg>
+    <div><h1>Meet management</h1><p>Dolphin Swim Academy · coaches only</p><p id="sync" aria-live="polite" style="font-size:14px;margin-top:4px"></p></div>
+  </div>
+  <div class="ropeline"></div>
+</header>
+
+<main>
+  <div class="hub">
+    <div class="side" role="tablist" aria-label="Meet tools" id="side"></div>
+    <div class="panel" id="panel" role="tabpanel" tabindex="0"></div>
+  </div>
+</main>
+
+<script>
+var KEY='dolphin-meet-v1';
+var EVENTS=['50 Free','100 Free','200 Free','400 Free','50 Back','100 Back','200 Back','50 Breast','100 Breast','200 Breast','50 Fly','100 Fly','200 IM','400 IM'];
+var state={meet:{name:'My meet',date:'',warmup:'',deadline:'',fee:10},entries:[],quals:{},results:[],swimmers:[],profiles:{},fees:{},coachFee:0,payments:[]};
+var selected={}; var tab='entries'; var editId=null; var sortBy='added'; var reportKind='swimmer'; var cur=null; var curEvent=null;
+
+try{var raw=localStorage.getItem(KEY); if(raw){var p=JSON.parse(raw); if(p&&p.entries){state=p; state.meet=state.meet||{}; state.quals=state.quals||{}; state.results=state.results||[]; state.swimmers=state.swimmers||[]; state.profiles=state.profiles||{}; state.fees=state.fees||{}; state.payments=state.payments||[]; if(state.coachFee==null)state.coachFee=0;}}}catch(e){}
+var ver=0,pulled=false,busy=false,again=false,dirty=false,saveTimer=null;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){} dirty=true; clearTimeout(saveTimer); saveTimer=setTimeout(remoteSave,500);}
+function setSync(k){
+  var el=document.getElementById('sync'); if(!el) return;
+  var t={loading:'Loading your saved data…',saving:'Saving…',saved:'✓ Saved to the database',local:'Offline: saved on this device only. Retrying…',error:'Could not save online. Retrying…',conflict:'Someone else just made changes, so the latest data was loaded. Please redo your last change.'};
+  el.textContent=t[k]||'';
+}
+function payload(){return {meet:state.meet,entries:state.entries,quals:state.quals,swimmers:state.swimmers,profiles:state.profiles,fees:state.fees,coachFee:state.coachFee,results:state.results,payments:state.payments};}
+function applyRemote(d,v){
+  ver=v||0; if(!d) return;
+  state={meet:d.meet||{},entries:d.entries||[],quals:d.quals||{},swimmers:d.swimmers||[],results:d.results||[],profiles:d.profiles||{},fees:d.fees||{},coachFee:d.coachFee||0,payments:d.payments||[]};
+  try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
+  if(editId&&!state.entries.some(function(e){return e.id===editId;})) editId=null;
+  render();
+}
+function getJson(r){return r.json().then(function(j){return {s:r.status,j:j};});}
+function remoteSave(){
+  if(!pulled) return;
+  if(busy){again=true;return;}
+  busy=true; dirty=false; setSync('saving');
+  fetch('/api/state',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:ver,data:payload()})}).then(getJson).then(function(x){
+    busy=false;
+    if(x.s===409){again=false;dirty=false;applyRemote(x.j.data,x.j.version);setSync('conflict');return;}
+    if(x.s!==200) throw new Error('save failed');
+    ver=x.j.version; setSync('saved');
+    if(again||dirty){again=false;remoteSave();}
+  }).catch(function(){busy=false;again=false;dirty=true;setSync('error');clearTimeout(saveTimer);saveTimer=setTimeout(remoteSave,8000);});
+}
+function hasLocal(){return state.entries.length||state.results.length||state.swimmers.length||state.payments.length||Object.keys(state.profiles).length;}
+function pull(){
+  setSync('loading');
+  return fetch('/api/state').then(getJson).then(function(x){
+    if(x.s!==200) throw new Error('load failed');
+    pulled=true;
+    if(x.j.data){applyRemote(x.j.data,x.j.version);setSync('saved');}
+    else {ver=0; if(hasLocal()) remoteSave(); else setSync('saved');}
+  }).catch(function(){setSync('local');setTimeout(pull,10000);});
+}
+function typing(){var a=document.activeElement;return a&&panel.contains(a)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);}
+function poll(){
+  if(!pulled||busy||dirty) return;
+  fetch('/api/state').then(getJson).then(function(x){
+    if(x.s!==200||busy||dirty||typing()) return;
+    if(x.j.version!==ver&&x.j.data) applyRemote(x.j.data,x.j.version);
+  }).catch(function(){});
+}
+function initDb(){ pull(); setInterval(poll,30000); }
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+/* times */
+function parseTime(t){
+  t=String(t||'').trim().replace(',','.');
+  var m=t.match(/^(?:(\d{1,2}):)?(\d{1,2})(?:\.(\d{1,2}))?$/);
+  if(!m) return null;
+  var mins=m[1]?parseInt(m[1],10):0, secs=parseInt(m[2],10), frac=m[3]?parseInt((m[3]+'0').slice(0,2),10):0;
+  if(secs>=60 && m[1]) return null;
+  return mins*60+secs+frac/100;
+}
+function fmt(sec){
+  if(sec==null) return '—';
+  var m=Math.floor(sec/60), s=(sec-m*60).toFixed(2);
+  if(parseFloat(s)>=60){m+=1;s='0.00';}
+  if(m>0){ return m+':'+(parseFloat(s)<10?'0':'')+s; }
+  return s;
+}
+function status(e){
+  var q=state.quals[e.event]; var qs=parseTime(q); var t=parseTime(e.time);
+  if(qs==null||t==null) return {c:'wait',l:'No standard set'};
+  return t<=qs?{c:'ok',l:'Qualified'}:{c:'no',l:'Not yet qualified'};
+}
+function names(){var o={};state.entries.forEach(function(e){o[e.name]=1;});return Object.keys(o).sort();}
+
+function sorted(){
+  var a=state.entries.slice();
+  if(sortBy==='name') a.sort(function(x,y){return x.name.localeCompare(y.name)||EVENTS.indexOf(x.event)-EVENTS.indexOf(y.event);});
+  if(sortBy==='event') a.sort(function(x,y){return EVENTS.indexOf(x.event)-EVENTS.indexOf(y.event)||(parseTime(x.time)||9e9)-(parseTime(y.time)||9e9);});
+  if(sortBy==='time') a.sort(function(x,y){return (parseTime(x.time)||9e9)-(parseTime(y.time)||9e9);});
+  return a;
+}
+
+/* tabs */
+var TABS=[['entries','Entries'],['swimmers','Swimmers'],['records','Records'],['qual','Qualification'],['reports','Reports'],['msg','Messages'],['billing','Meet billing'],['pay','Coaching fees']];
+function renderSide(){
+  var m=state.meet;
+  var h='<div class="meetname">'+esc(m.name||'Dolphin Swim Academy')+'<span>'+(m.date?esc(m.date)+' · ':'')+allNames().length+' swimmers</span></div>';
+  TABS.forEach(function(t){h+='<button class="tab" role="tab" id="tab-'+t[0]+'" aria-selected="'+(tab===t[0])+'" data-tab="'+t[0]+'">'+t[1]+'</button>';});
+  h+='<button class="tab" id="xlsAll" style="margin-top:auto;font-weight:700;color:var(--link)">Download everything (Excel)</button>';
+  document.getElementById('side').innerHTML=h;
+}
+var panel=document.getElementById('panel');
+function render(){renderSide();panel.setAttribute('aria-labelledby','tab-'+tab);panel.innerHTML=views[tab]();after();}
+function toast(t){var el=document.getElementById('toast');if(el){el.textContent=t;}}
+function after(){ if(tab==='entries'&&editId){var n=document.getElementById('fn'); if(n)n.focus();} }
+
+var views={};
+
+views.entries=function(){
+  var ed=editId?state.entries.filter(function(e){return e.id===editId;})[0]:null;
+  var q=state.entries.length, sw=names().length;
+  var h='<h2>Entries</h2><p class="d">Add each swimmer with the race and their entry time. Add the same name again for another race.</p>';
+  h+='<div class="stats"><div class="stat"><b>'+sw+'</b><span>Swimmers</span></div><div class="stat"><b>'+q+'</b><span>Entries</span></div></div>';
+  h+='<div class="addbox'+(ed?' editing':'')+'">';
+  h+='<div class="f"><label for="fn">Swimmer name</label><input id="fn" list="nl" autocomplete="off" value="'+(ed?esc(ed.name):'')+'"><datalist id="nl">'+allNames().map(function(n){return '<option value="'+esc(n)+'">';}).join('')+'</datalist></div>';
+  h+='<div class="f"><label for="fe">Race</label><select id="fe">'+EVENTS.map(function(x){return '<option'+(ed&&ed.event===x?' selected':'')+'>'+x+'</option>';}).join('')+'</select></div>';
+  h+='<div class="f"><label for="ft">Time</label><input id="ft" inputmode="decimal" placeholder="1:08.45" value="'+(ed?esc(ed.time):'')+'"></div>';
+  h+='<div class="btnrow"><button class="btn yellow" id="saveEntry">'+(ed?'Save changes':'Add entry')+'</button>'+(ed?'<button class="btn alt" id="cancelEdit">Cancel</button>':'')+'</div></div>';
+  h+='<div class="err" id="err" role="alert"></div>';
+  if(!q){ return h+'<div class="empty">No entries yet. Add your first swimmer above.</div>'; }
+  var list=sorted();
+  var allSel=list.every(function(e){return selected[e.id];});
+  h+='<div class="toolbar"><label>Sort by <select id="sortBy"><option value="added"'+(sortBy==='added'?' selected':'')+'>Order added</option><option value="name"'+(sortBy==='name'?' selected':'')+'>Swimmer name</option><option value="event"'+(sortBy==='event'?' selected':'')+'>Race</option><option value="time"'+(sortBy==='time'?' selected':'')+'>Time</option></select></label>';
+  h+='<div class="btnrow"><button class="btn yellow tiny" id="xlsEntries">Download entries as Excel</button><button class="btn alt tiny" id="clearAll">Clear all entries</button></div></div>';
+  h+='<div class="tscroll"><table><thead><tr><th><input type="checkbox" id="selAll" aria-label="Select all"'+(allSel?' checked':'')+'></th><th>Swimmer</th><th>Race</th><th class="num">Time</th><th></th></tr></thead><tbody>';
+  list.forEach(function(e){
+    var s=status(e);
+    h+='<tr><td><input type="checkbox" class="sel" data-id="'+e.id+'" aria-label="Select '+esc(e.name)+' '+esc(e.event)+'"'+(selected[e.id]?' checked':'')+'></td><td><button class="linkbtn" data-open="'+esc(e.name)+'" title="Open swimmer file">'+esc(e.name)+'</button></td><td>'+esc(e.event)+'</td><td class="num">'+esc(fmt(parseTime(e.time)))+'</td>';
+    h+='<td><div class="btnrow" style="flex-wrap:nowrap"><button class="btn alt tiny" data-edit="'+e.id+'">Edit</button><button class="btn alt tiny" data-del="'+e.id+'">Delete</button></div></td></tr>';
+  });
+  h+='</tbody></table></div><p class="note">Tick entries to choose recipients on the Messages tab. Your data saves automatically.</p><div class="toast" id="toast" role="status"></div>';
+  return h;
+};
+
+views.qual=function(){
+  var used=EVENTS.filter(function(ev){return state.entries.some(function(e){return e.event===ev;});});
+  var h='<h2>Qualification</h2><p class="d">Set the qualifying time for each race. Swimmers at or under it show as qualified.</p>';
+  if(!used.length) return h+'<div class="empty">Add entries first, then set qualifying times for their races.</div>';
+  h+='<div class="tscroll" style="padding:0">';
+  used.forEach(function(ev){
+    var es=state.entries.filter(function(e){return e.event===ev;});
+    var qn=es.filter(function(e){return status(e).c==='ok';}).length;
+    h+='<div class="qrow"><strong>'+ev+' <span style="color:var(--muted);font-weight:400">('+es.length+' entered)</span></strong><input class="qin" data-ev="'+ev+'" placeholder="Qualifying time" inputmode="decimal" aria-label="Qualifying time for '+ev+'" value="'+esc(state.quals[ev]||'')+'"><span class="pill '+(parseTime(state.quals[ev])==null?'wait':'ok')+'">'+(parseTime(state.quals[ev])==null?'Not set':qn+' qualified')+'</span></div>';
+  });
+  h+='</div><p class="note">Example formats: 34.50 or 1:08.00</p><div class="btnrow" style="margin-top:12px"><button class="btn yellow" id="xlsQual">Download qualification as Excel</button></div><div class="toast" id="toast" role="status"></div>';
+  return h;
+};
+
+function reportText(kind){
+  var E=state.entries; if(!E.length) return '';
+  var m=state.meet, out='';
+  if(kind==='csv'){
+    out='Swimmer,Race,Time\n';
+    sorted().forEach(function(e){out+='"'+e.name.replace(/"/g,'""')+'",'+e.event+','+fmt(parseTime(e.time))+'\n';});
+    return out;
+  }
+  out=(m.name||'Meet')+(m.date?' · '+m.date:'')+'\n';
+  if(kind==='swimmer'){
+    out+='Entries by swimmer\n\n';
+    names().forEach(function(n){
+      out+=n+'\n';
+      E.filter(function(e){return e.name===n;}).sort(function(a,b){return EVENTS.indexOf(a.event)-EVENTS.indexOf(b.event);}).forEach(function(e){out+='  '+e.event+'  '+fmt(parseTime(e.time))+'\n';});
+      out+='\n';
+    });
+  } else {
+    out+='Entries by race (fastest first)\n\n';
+    EVENTS.forEach(function(ev){
+      var es=E.filter(function(e){return e.event===ev;}).sort(function(a,b){return (parseTime(a.time)||9e9)-(parseTime(b.time)||9e9);});
+      if(!es.length) return;
+      out+=ev+'\n'; es.forEach(function(e,i){out+='  '+(i+1)+'. '+e.name+'  '+fmt(parseTime(e.time))+'\n';}); out+='\n';
+    });
+  }
+  return out.trim()+'\n';
+}
+views.reports=function(){
+  var h='<h2>Reports</h2><p class="d">Create an entry report or an entry file you can copy into email or a spreadsheet.</p>';
+  if(!state.entries.length) return h+'<div class="empty">No entries yet. Add swimmers on the Entries tab.</div>';
+  var kinds=[['swimmer','Entries by swimmer'],['event','Entries by race'],['csv','Entry list (plain text)']];
+  h+='<div class="tools">'+kinds.map(function(k){return '<button class="btn alt tiny" data-kind="'+k[0]+'" aria-pressed="'+(reportKind===k[0])+'">'+k[1]+'</button>';}).join('')+'</div>';
+  h+='<textarea id="out" readonly style="min-height:300px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px">'+esc(reportText(reportKind))+'</textarea>';
+  h+='<div class="btnrow" style="margin-top:12px"><button class="btn" id="copyOut">Copy to clipboard</button><button class="btn yellow" id="xlsReport">Download reports as Excel</button></div><p class="note">The Excel file has two sheets: by swimmer and by race.</p><div class="toast" id="toast" role="status"></div>';
+  return h;
+};
+
+views.msg=function(){
+  var ids=Object.keys(selected).filter(function(k){return selected[k];});
+  var who={}; state.entries.forEach(function(e){if(selected[e.id])who[e.name]=1;});
+  var wl=Object.keys(who);
+  var h='<h2>Messages</h2><p class="d">Write one message for the swimmers you ticked on the Entries tab.</p>';
+  h+='<div class="f" style="margin-bottom:12px"><label>Recipients</label><div>'+(wl.length?wl.map(function(n){return '<span class="pill ok" style="margin-right:6px;display:inline-block;margin-bottom:6px">'+esc(n)+'</span>';}).join(''):'<span style="color:var(--muted)">No swimmers selected. Tick entries on the Entries tab.</span>')+'</div></div>';
+  h+='<div class="f"><label for="mtext">Message</label><textarea id="mtext">Warm-up starts at '+esc(state.meet.warmup||'[time]')+'. Please bring two caps and your goggles.</textarea></div>';
+  h+='<div class="btnrow" style="margin-top:12px"><button class="btn" id="copyMsg">Copy message</button></div><div class="toast" id="toast" role="status"></div>';
+  h+='<p class="note">This page cannot send messages by itself. Copy the message and paste it into your email or group chat.</p>';
+  return h;
+};
+
+function effFee(e){var f=parseFloat(e.fee);if(!isNaN(f))return f;return parseFloat(state.meet.fee)||0;}
+views.billing=function(){
+  var def=parseFloat(state.meet.fee)||0;
+  var h='<h2>Billing</h2><p class="d">Set the fee for each race a swimmer is entered in. New entries start at the default fee.</p>';
+  h+='<div class="addbox" style="grid-template-columns:1fr auto;max-width:540px"><div class="f"><label for="deffee">Default fee per race</label><input id="deffee" inputmode="decimal" value="'+esc(def)+'"></div><div class="btnrow"><button class="btn alt" id="applyFee">Apply to all entries</button></div></div>';
+  if(!state.entries.length) return h+'<div class="empty">No entries yet. Add swimmers on the Entries tab.</div>';
+  var total=0;
+  h+='<div class="tscroll"><table><thead><tr><th>Swimmer</th><th>Race</th><th class="num">Fee</th></tr></thead><tbody>';
+  names().forEach(function(n){
+    var es=state.entries.filter(function(e){return e.name===n;}).sort(byEventIdx),sub=0;
+    es.forEach(function(e,i){
+      var f=effFee(e);sub+=f;
+      h+='<tr><td>'+(i===0?'<strong>'+esc(n)+'</strong>':'')+'</td><td>'+esc(e.event)+'</td><td class="num"><input class="bfee" data-id="'+e.id+'" inputmode="decimal" value="'+f.toFixed(2)+'" aria-label="Fee for '+esc(n)+', '+esc(e.event)+'" style="width:110px;text-align:right"></td></tr>';
+    });
+    total+=sub;
+    h+='<tr style="background:color-mix(in srgb,var(--surface) 93%,var(--aqua))"><td colspan="2" style="text-align:right;color:var(--muted)">'+esc(n)+' total</td><td class="num"><strong>'+sub.toFixed(2)+'</strong></td></tr>';
+  });
+  h+='<tr><td colspan="2"><strong>All swimmers total</strong></td><td class="num"><strong>'+total.toFixed(2)+'</strong></td></tr></tbody></table></div>';
+  h+='<p class="note">Change a fee and press Enter or click away to save it.</p>';
+  h+='<div class="btnrow" style="margin-top:14px"><button class="btn yellow" id="xlsBilling">Download billing as Excel</button></div><div class="toast" id="toast" role="status"></div>';
+  return h;
+};
+
+/* ===== swimmer management ===== */
+var swSort='young',fYear='';
+function prof(n){return state.profiles[n]||{};}
+function yobOf(n){var y=parseInt(prof(n).yob,10);return isNaN(y)?null:y;}
+function ageOf(n){var y=yobOf(n);return y==null?null:new Date().getFullYear()-y;}
+function validYob(v){var y=parseInt(v,10);return (!isNaN(y)&&y>=1930&&y<=new Date().getFullYear())?y:null;}
+function byAge(a,b){
+  var ya=yobOf(a),yb=yobOf(b);
+  if(ya==null&&yb==null) return a.localeCompare(b);
+  if(ya==null) return 1;
+  if(yb==null) return -1;
+  if(ya!==yb) return swSort==='young'?yb-ya:ya-yb;
+  return a.localeCompare(b);
+}
+function sortedNames(){return allNames().sort(byAge);}
+function yearsList(){var o={};allNames().forEach(function(n){var y=yobOf(n);if(y!=null)o[y]=1;});return Object.keys(o).map(Number).sort(function(a,b){return b-a;});}
+function yearOptions(sel,blank){return '<option value="">'+blank+'</option>'+yearsList().map(function(y){return '<option'+(String(y)===String(sel)?' selected':'')+'>'+y+'</option>';}).join('');}
+function pickNames(year){return sortedNames().filter(function(n){return !year||String(yobOf(n))===String(year);});}
+
+function renameSwimmer(o,nn){
+  if(o===nn) return;
+  state.swimmers=state.swimmers.map(function(x){return x===o?nn:x;});
+  state.entries.forEach(function(e){if(e.name===o)e.name=nn;});
+  state.results.forEach(function(r){if(r.name===o)r.name=nn;});
+  state.payments.forEach(function(p){if(p.name===o)p.name=nn;});
+  if(state.profiles[o]){state.profiles[nn]=state.profiles[o];delete state.profiles[o];}
+  if(state.fees[o]!=null){state.fees[nn]=state.fees[o];delete state.fees[o];}
+}
+function removeSwimmer(n){
+  state.swimmers=state.swimmers.filter(function(x){return x!==n;});
+  state.results=state.results.filter(function(r){return r.name!==n;});
+  state.payments=state.payments.filter(function(p){return p.name!==n;});
+  state.entries=state.entries.filter(function(e){if(e.name===n){delete selected[e.id];return false;}return true;});
+  delete state.profiles[n]; delete state.fees[n];
+}
+
+function swimmerList(){
+  var h='<h2>Swimmers</h2><p class="d">Add, edit and remove swimmers with their year of birth. The list is ordered by age.</p>';
+  h+='<div class="addbox3"><div class="f"><label for="ns">Swimmer name</label><input id="ns" autocomplete="off" placeholder="Full name"></div><div class="f"><label for="nyob">Year of birth</label><input id="nyob" type="number" inputmode="numeric" min="1930" max="'+new Date().getFullYear()+'" placeholder="2014"></div><div class="btnrow"><button class="btn yellow" id="addSwimmer">Add swimmer</button></div></div><div class="err" id="err" role="alert"></div>';
+  var ns=allNames();
+  if(!ns.length) return h+'<div class="empty">No swimmers yet. Add your first swimmer above.</div>';
+  var list=pickNames(fYear);
+  h+='<div class="toolbar"><div class="btnrow"><label>Order <select id="swSort"><option value="young"'+(swSort==='young'?' selected':'')+'>Youngest first</option><option value="old"'+(swSort==='old'?' selected':'')+'>Oldest first</option></select></label><label>Year of birth <select id="fltYear">'+yearOptions(fYear,'All years')+'</select></label></div><span style="color:var(--muted);font-size:14px">'+list.length+' of '+ns.length+' swimmers</span></div>';
+  if(!list.length) h+='<div class="empty">No swimmers match this filter.</div>';
+  else {
+    h+='<div class="tscroll"><table><thead><tr><th>Swimmer</th><th class="num">Year of birth</th><th class="num">Age</th><th class="num">Results</th><th>Last result</th><th></th></tr></thead><tbody>';
+    list.forEach(function(n){var rs=resultsOf(n),y=yobOf(n),a=ageOf(n);
+      h+='<tr><td><button class="linkbtn" data-open="'+esc(n)+'">'+esc(n)+'</button></td><td class="num">'+(y==null?'\u2014':y)+'</td><td class="num">'+(a==null?'\u2014':a)+'</td><td class="num">'+rs.length+'</td><td>'+(rs.length?fmtDate(rs[rs.length-1].date):'\u2014')+'</td><td><div class="btnrow" style="flex-wrap:nowrap"><button class="btn alt tiny" data-open="'+esc(n)+'">Edit</button><button class="btn alt tiny" data-rm="'+esc(n)+'">Remove</button></div></td></tr>';});
+    h+='</tbody></table></div>';
+  }
+  return h+'<div class="btnrow" style="margin-top:14px"><button class="btn yellow" id="xlsAllSwimmers">Download all swimmer files as Excel</button></div><p class="note">One workbook with a sheet for every swimmer. Open a swimmer to download just their file.</p><div class="toast" id="toast" role="status"></div>';
+}
+
+/* ===== times and personal records ===== */
+var recEv='100 Free',recYear='';
+function compLabel(r){return (r.meet||'').trim()||fmtDate(r.date);}
+function bestRes(n,ev){var best=null;resultsOf(n,ev).forEach(function(r){var t=parseTime(r.time);if(best==null||t<best.t)best={t:t,r:r};});return best;}
+function dtxt(d){return Math.abs(d)<0.005?'0.00':(d<0?'\u2212'+(-d).toFixed(2):'+'+d.toFixed(2));}
+function pbRows(ev,year){
+  var rows=[];
+  pickNames(year).forEach(function(n){var b=bestRes(n,ev);if(!b)return;var rs=resultsOf(n,ev);rows.push({n:n,best:b,latest:rs[rs.length-1],count:rs.length});});
+  rows.sort(function(a,b){return a.best.t-b.best.t;});
+  return rows;
+}
+function compData(ev,year){
+  var names=pickNames(year),first={},cell={};
+  names.forEach(function(n){resultsOf(n,ev).forEach(function(r){
+    var l=compLabel(r),t=parseTime(r.time);
+    if(first[l]==null||r.date<first[l])first[l]=r.date;
+    cell[n]=cell[n]||{};
+    if(cell[n][l]==null||t<cell[n][l])cell[n][l]=t;
+  });});
+  var labels=Object.keys(first).sort(function(a,b){return first[a]<first[b]?-1:first[a]>first[b]?1:a.localeCompare(b);});
+  var rows=[];
+  names.forEach(function(n){if(!cell[n])return;
+    var vals=labels.map(function(l){return cell[n][l]==null?null:cell[n][l];});
+    var have=vals.filter(function(v){return v!=null;});
+    rows.push({n:n,vals:vals,best:have.length?Math.min.apply(null,have):null,change:have.length>1?have[have.length-1]-have[0]:null});
+  });
+  return {labels:labels,rows:rows};
+}
+function clubRecords(year){
+  var out=[];
+  EVENTS.forEach(function(ev){var best=null;
+    pickNames(year).forEach(function(n){var b=bestRes(n,ev);if(b&&(!best||b.t<best.t))best={t:b.t,r:b.r,n:n};});
+    if(best)out.push({ev:ev,t:best.t,n:best.n,r:best.r});
+  });
+  return out;
+}
+function recFilters(){
+  return '<div class="toolbar"><div class="btnrow"><label>Race <select id="recEv">'+EVENTS.map(function(x){return '<option'+(x===recEv?' selected':'')+'>'+x+'</option>';}).join('')+'</select></label><label>Year of birth <select id="recYear">'+yearOptions(recYear,'All years')+'</select></label></div></div>';
+}
+function bornTxt(n){var y=yobOf(n);return y==null?'\u2014':y;}
+views.records=function(){
+  var h='<h2>Times and personal records</h2><p class="d">See every swimmer\u2019s best time in a race, compare results across competitions, and check the records. Times come from the swimmer files. Swimmers are listed by age.</p>';
+  if(!state.results.length) return h+'<div class="empty">No times logged yet. Open a swimmer on the Swimmers tab and add their times.</div>';
+  h+=recFilters();
+  var rows=pbRows(recEv,recYear);
+  h+='<div class="sec">Personal bests: '+esc(recEv)+'</div>';
+  if(!rows.length) h+='<div class="empty">No times for this race with this filter.</div>';
+  else {
+    h+='<div class="tscroll"><table><thead><tr><th class="num">#</th><th>Swimmer</th><th class="num">Born</th><th class="num">Best</th><th>Date</th><th>Competition</th><th class="num">Latest</th><th class="num">Results</th></tr></thead><tbody>';
+    rows.forEach(function(x,i){h+='<tr><td class="num">'+(i+1)+'</td><td><button class="linkbtn" data-open="'+esc(x.n)+'">'+esc(x.n)+'</button></td><td class="num">'+bornTxt(x.n)+'</td><td class="num"><strong>'+esc(fmt(x.best.t))+'</strong></td><td>'+esc(fmtDate(x.best.r.date))+'</td><td>'+esc(compLabel(x.best.r))+'</td><td class="num">'+esc(fmt(parseTime(x.latest.time)))+'</td><td class="num">'+x.count+'</td></tr>';});
+    h+='</tbody></table></div><p class="note">Ranked by best time. Use the year of birth filter to compare swimmers born in the same year.</p>';
+  }
+  var cd=compData(recEv,recYear);
+  h+='<div class="sec">Compare competitions: '+esc(recEv)+'</div>';
+  if(!cd.rows.length) h+='<div class="empty">No times to compare yet.</div>';
+  else {
+    h+='<div class="tscroll"><table><thead><tr><th>Swimmer</th><th class="num">Born</th>'+cd.labels.map(function(l){return '<th class="num">'+esc(l)+'</th>';}).join('')+'<th class="num">Change</th></tr></thead><tbody>';
+    cd.rows.forEach(function(r){
+      h+='<tr><td><strong>'+esc(r.n)+'</strong></td><td class="num">'+bornTxt(r.n)+'</td>'+r.vals.map(function(v){return '<td class="num">'+(v==null?'\u2014':(v===r.best?'<span class="pill ok">'+esc(fmt(v))+'</span>':esc(fmt(v))))+'</td>';}).join('')+'<td class="num">'+(r.change==null?'\u2014':dtxt(r.change))+'</td></tr>';
+    });
+    h+='</tbody></table></div><p class="note">Each cell is the swimmer\u2019s best time at that competition. The green time is their fastest. Change is from the first to the last competition (minus means faster). The competition is the meet or note you typed when adding the time, or the date if you left it blank.</p>';
+  }
+  var cr=clubRecords(recYear);
+  h+='<div class="sec">Records</div><div class="tscroll"><table><thead><tr><th>Race</th><th class="num">Record</th><th>Swimmer</th><th class="num">Born</th><th>Date</th><th>Competition</th></tr></thead><tbody>';
+  cr.forEach(function(x){h+='<tr><td>'+esc(x.ev)+'</td><td class="num"><strong>'+esc(fmt(x.t))+'</strong></td><td>'+esc(x.n)+'</td><td class="num">'+bornTxt(x.n)+'</td><td>'+esc(fmtDate(x.r.date))+'</td><td>'+esc(compLabel(x.r))+'</td></tr>';});
+  h+='</tbody></table></div><div class="btnrow" style="margin-top:14px"><button class="btn yellow" id="xlsRecords">Download records as Excel</button></div><div class="toast" id="toast" role="status"></div>';
+  return h;
+};
+function recordsSheets(){
+  var rows=pbRows(recEv,recYear),a=[['Rank','Swimmer','Year of birth','Best','Date','Competition','Latest','Results']];
+  rows.forEach(function(x,i){a.push([i+1,x.n,yobOf(x.n)||'',fmt(x.best.t),x.best.r.date,compLabel(x.best.r),fmt(parseTime(x.latest.time)),x.count]);});
+  var cd=compData(recEv,recYear),b=[['Swimmer','Year of birth'].concat(cd.labels,['Change (s)'])];
+  cd.rows.forEach(function(r){b.push([r.n,yobOf(r.n)||''].concat(r.vals.map(function(v){return v==null?'':fmt(v);}),[r.change==null?'':+r.change.toFixed(2)]));});
+  var c=[['Race','Record','Swimmer','Year of birth','Date','Competition']];
+  clubRecords(recYear).forEach(function(x){c.push([x.ev,fmt(x.t),x.n,yobOf(x.n)||'',x.r.date,compLabel(x.r)]);});
+  var d=[['Swimmer','Year of birth','Race','Best','Date','Competition','Results']];
+  pickNames('').forEach(function(n){EVENTS.forEach(function(ev){var bb=bestRes(n,ev);if(bb)d.push([n,yobOf(n)||'',ev,fmt(bb.t),bb.r.date,compLabel(bb.r),resultsOf(n,ev).length]);});});
+  var cols=[];for(var i=0;i<cd.labels.length+3;i++)cols.push(i?16:26);
+  return [{name:'Personal bests',rows:a,cols:[6,26,13,10,12,22,10,9]},{name:'Compare competitions',rows:b,cols:cols},{name:'Records',rows:c,cols:[14,10,26,13,12,22]},{name:'All personal bests',rows:d,cols:[26,13,14,10,12,22,9]}];
+}
+
+/* ===== coaching fee payments ===== */
+var payMonth=today().slice(0,7);
+function fmtMonth(p){var d=new Date(p+'-01T00:00:00');return isNaN(d.getTime())?p:d.toLocaleDateString(undefined,{month:'long',year:'numeric'});}
+function feeOf(n){var f=parseFloat(state.fees[n]);return isNaN(f)?(parseFloat(state.coachFee)||0):f;}
+function paidIn(n,period){var t=0;state.payments.forEach(function(p){if(p.name===n&&p.period===period)t+=parseFloat(p.amount)||0;});return t;}
+function payStatus(fee,paid){
+  if(fee<=0) return {c:'wait',l:'No fee set'};
+  if(paid>=fee-0.004) return {c:'ok',l:'Paid'};
+  if(paid>0) return {c:'wait',l:'Partly paid'};
+  return {c:'no',l:'Unpaid'};
+}
+views.pay=function(){
+  var ns=sortedNames(), h='<h2>Coaching fees</h2><p class="d">Set each swimmer\u2019s monthly coaching fee, then record payments for the month. Meet entry fees are on the Meet billing tab.</p>';
+  h+='<div class="addbox4" style="max-width:760px"><div class="f"><label for="payMonth">Month</label><input id="payMonth" type="month" value="'+esc(payMonth)+'"></div><div class="f"><label for="coachFee">Default monthly fee</label><input id="coachFee" inputmode="decimal" value="'+esc(parseFloat(state.coachFee)||0)+'"></div><div class="btnrow" style="grid-column:span 2"><button class="btn alt" id="applyCoachFee">Apply to all swimmers</button></div></div>';
+  if(!ns.length) return h+'<div class="empty">No swimmers yet. Add swimmers on the Swimmers tab.</div>';
+  var exp=0,col=0,out=0;
+  ns.forEach(function(n){var f=feeOf(n),p=paidIn(n,payMonth);exp+=f;col+=p;out+=Math.max(0,f-p);});
+  h+='<div class="stats"><div class="stat"><b>'+exp.toFixed(2)+'</b><span>Expected</span></div><div class="stat"><b>'+col.toFixed(2)+'</b><span>Collected</span></div><div class="stat"><b>'+out.toFixed(2)+'</b><span>Outstanding</span></div></div>';
+  h+='<div class="addbox5" style="grid-template-columns:1.3fr .8fr 1fr 1.2fr auto"><div class="f"><label for="pws">Swimmer</label><select id="pws">'+ns.map(function(n){return '<option>'+esc(n)+'</option>';}).join('')+'</select></div><div class="f"><label for="pwa">Amount</label><input id="pwa" inputmode="decimal" placeholder="0.00"></div><div class="f"><label for="pwd">Date paid</label><input id="pwd" type="date" value="'+today()+'"></div><div class="f"><label for="pwn">Note (cash, transfer\u2026)</label><input id="pwn" placeholder="Optional"></div><div class="btnrow"><button class="btn yellow" id="addPay">Add payment</button></div></div><div class="err" id="err" role="alert"></div>';
+  h+='<div class="sec">'+esc(fmtMonth(payMonth))+'</div><div class="tscroll"><table><thead><tr><th>Swimmer</th><th class="num">Monthly fee</th><th class="num">Paid</th><th class="num">Balance</th><th>Status</th><th></th></tr></thead><tbody>';
+  ns.forEach(function(n){
+    var f=feeOf(n),p=paidIn(n,payMonth),b=f-p,s=payStatus(f,p);
+    h+='<tr><td><strong>'+esc(n)+'</strong></td><td class="num"><input class="cfee" data-n="'+esc(n)+'" inputmode="decimal" value="'+f.toFixed(2)+'" aria-label="Monthly fee for '+esc(n)+'" style="width:110px;text-align:right"></td><td class="num">'+p.toFixed(2)+'</td><td class="num">'+b.toFixed(2)+'</td><td><span class="pill '+s.c+'">'+s.l+'</span></td><td>'+(b>0.004?'<button class="btn alt tiny" data-markpaid="'+esc(n)+'">Mark paid</button>':'')+'</td></tr>';
+  });
+  h+='</tbody></table></div><p class="note">Change a fee and press Enter or click away to save it. A negative balance means the swimmer has paid ahead.</p>';
+  var hist=state.payments.filter(function(p){return p.period===payMonth;}).sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:(b.at||0)-(a.at||0);});
+  h+='<div class="sec">Payments in '+esc(fmtMonth(payMonth))+'</div>';
+  if(!hist.length) h+='<div class="empty">No payments recorded for this month.</div>';
+  else {
+    h+='<div class="tscroll"><table><thead><tr><th>Date</th><th>Swimmer</th><th class="num">Amount</th><th>Note</th><th></th></tr></thead><tbody>';
+    hist.forEach(function(p){h+='<tr><td>'+esc(fmtDate(p.date))+'</td><td><strong>'+esc(p.name)+'</strong></td><td class="num">'+(parseFloat(p.amount)||0).toFixed(2)+'</td><td>'+esc(p.note||'')+'</td><td><button class="btn alt tiny" data-pdel="'+p.id+'">Delete</button></td></tr>';});
+    h+='</tbody></table></div>';
+  }
+  h+='<div class="btnrow" style="margin-top:14px"><button class="btn yellow" id="xlsPay">Download coaching fees as Excel</button></div><div class="toast" id="toast" role="status"></div>';
+  return h;
+};
+function paymentsSheets(){
+  var a=[['Swimmer','Year of birth','Monthly fee','Paid','Balance','Status']];
+  sortedNames().forEach(function(n){var f=feeOf(n),p=paidIn(n,payMonth);a.push([n,yobOf(n)||'',+f.toFixed(2),+p.toFixed(2),+(f-p).toFixed(2),payStatus(f,p).l]);});
+  var b=[['Date','Swimmer','Month','Amount','Note']];
+  state.payments.slice().sort(function(x,y){return x.date<y.date?-1:x.date>y.date?1:(x.at||0)-(y.at||0);}).forEach(function(p){b.push([p.date,p.name,fmtMonth(p.period),+(parseFloat(p.amount)||0).toFixed(2),p.note||'']);});
+  return [{name:'Coaching fees',rows:a,cols:[26,13,13,10,10,13]},{name:'Payment history',rows:b,cols:[12,26,18,10,26]}];
+}
+
+/* swimmer files */
+function allNames(){var o={};state.swimmers.forEach(function(n){o[n]=1;});state.entries.forEach(function(e){o[e.name]=1;});state.results.forEach(function(r){o[r.name]=1;});return Object.keys(o).sort(function(a,b){return a.localeCompare(b);});}
+function today(){var d=new Date(),m=d.getMonth()+1,day=d.getDate();return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(day<10?'0':'')+day;}
+function fmtDate(s){var d=new Date(s+'T00:00:00');return isNaN(d.getTime())?s:d.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});}
+function shortDate(s){var d=new Date(s+'T00:00:00');return isNaN(d.getTime())?s:d.toLocaleDateString(undefined,{day:'numeric',month:'short'});}
+function resultsOf(n,ev){return state.results.filter(function(r){return r.name===n&&(!ev||r.event===ev);}).sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:(a.at||0)-(b.at||0);});}
+function annotate(n){var out={},by={};resultsOf(n).forEach(function(r){var t=parseTime(r.time);var st=by[r.event]||(by[r.event]={last:null,best:null});out[r.id]={delta:st.last==null?null:t-st.last,pb:st.best==null||t<st.best};st.last=t;if(st.best==null||t<st.best)st.best=t;});return out;}
+function deltaPill(d){if(d==null)return '<span class="pill wait">First time</span>';if(Math.abs(d)<0.005)return '<span class="pill wait">No change</span>';return d<0?'<span class="pill ok">\u2212'+(-d).toFixed(2)+'s faster</span>':'<span class="pill no">+'+d.toFixed(2)+'s slower</span>';}
+
+views.swimmers=function(){return cur==null?swimmerList():swimmerProfile(cur);};
+
+
+function chartSVG(n,ev){
+  var rs=resultsOf(n,ev); if(!rs.length) return '';
+  var W=600,H=230,L=58,R=46,T=26,B=42;
+  var ts=rs.map(function(r){return parseTime(r.time);});
+  var mn=Math.min.apply(null,ts),mx=Math.max.apply(null,ts);
+  var pad=(mx-mn)||Math.max(mn*0.02,0.5), lo=mn-pad*0.3, hi=mx+pad*0.3;
+  function X(i){return rs.length===1?L+(W-L-R)/2:L+i*(W-L-R)/(rs.length-1);}
+  function Y(t){return T+(t-lo)/(hi-lo)*(H-T-B);}
+  var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Times for '+esc(ev)+', '+rs.length+' results, best '+esc(fmt(mn))+'" style="width:100%;height:auto;display:block;font-family:inherit">';
+  var lines=(mn===mx)?[mn]:[mn,mx];
+  lines.forEach(function(v){var y=Y(v).toFixed(1);s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" style="stroke:var(--line)" stroke-dasharray="4 4"/><text x="'+(L-8)+'" y="'+(+y+4)+'" text-anchor="end" font-size="12" style="fill:var(--muted)">'+esc(fmt(v))+'</text>';});
+  s+='<polyline points="'+rs.map(function(r,i){return X(i).toFixed(1)+','+Y(ts[i]).toFixed(1);}).join(' ')+'" fill="none" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" style="stroke:var(--aqua)"/>';
+  var many=rs.length>8;
+  rs.forEach(function(r,i){var isBest=ts[i]===mn,x=X(i).toFixed(1),y=Y(ts[i]).toFixed(1);
+    s+='<circle cx="'+x+'" cy="'+y+'" r="'+(isBest?7:5)+'" style="fill:'+(isBest?'var(--coral)':'var(--deep)')+';stroke:var(--surface)" stroke-width="2"/>';
+    if(!many||isBest||i===rs.length-1) s+='<text x="'+x+'" y="'+(+y-12)+'" text-anchor="middle" font-size="12" font-weight="600" style="fill:var(--text)">'+esc(fmt(ts[i]))+'</text>';
+    if(!many||i===0||i===rs.length-1) s+='<text x="'+x+'" y="'+(H-14)+'" text-anchor="middle" font-size="12" style="fill:var(--muted)">'+esc(shortDate(r.date))+'</text>';
+  });
+  return s+'</svg>';
+}
+
+function swimmerProfile(n){
+  var rs=resultsOf(n),ann=annotate(n);
+  var evs=EVENTS.filter(function(ev){return rs.some(function(r){return r.event===ev;});});
+  if(!curEvent||evs.indexOf(curEvent)<0) curEvent=evs[0]||null;
+  var h='<div class="btnrow" style="margin-bottom:14px"><button class="btn alt tiny" id="backList">All swimmers</button><button class="btn yellow tiny" id="xlsSwimmer">Download this file as Excel</button></div>';
+  h+='<h2>'+esc(n)+'</h2><p class="d">'+(yobOf(n)==null?'No year of birth set':'Born '+yobOf(n)+' \u00b7 Age '+ageOf(n))+'</p>';
+  h+='<div class="addbox3"><div class="f"><label for="pn">Name</label><input id="pn" value="'+esc(n)+'"></div><div class="f"><label for="pyob">Year of birth</label><input id="pyob" type="number" inputmode="numeric" min="1930" max="'+new Date().getFullYear()+'" placeholder="2014" value="'+(yobOf(n)==null?'':yobOf(n))+'"></div><div class="btnrow"><button class="btn" id="saveProfile">Save swimmer</button></div></div><div class="err" id="perr" role="alert"></div>';
+  h+='<div class="stats"><div class="stat"><b>'+rs.length+'</b><span>Results logged</span></div><div class="stat"><b>'+evs.length+'</b><span>Races tracked</span></div></div>';
+  var selEv=curEvent||'100 Free';
+  h+='<div class="addbox5"><div class="f"><label for="rev">Race</label><select id="rev">'+EVENTS.map(function(x){return '<option'+(x===selEv?' selected':'')+'>'+x+'</option>';}).join('')+'</select></div>';
+  h+='<div class="f"><label for="rt">Time</label><input id="rt" inputmode="decimal" placeholder="1:08.45"></div>';
+  h+='<div class="f"><label for="rd">Date</label><input id="rd" type="date" value="'+today()+'"></div>';
+  h+='<div class="f"><label for="rn">Meet or note</label><input id="rn" placeholder="Optional"></div>';
+  h+='<div class="btnrow"><button class="btn yellow" id="saveResult">Add time</button></div></div>';
+  h+='<div class="err" id="err" role="alert"></div><div class="toast" id="toast" role="status" style="margin:-6px 0 6px"></div>';
+  if(!rs.length){
+    h+='<div class="empty">No times yet. Add this swimmer\u2019s first time above.</div>';
+  } else {
+    h+='<div class="sec">Personal bests</div><div class="tscroll"><table><thead><tr><th>Race</th><th class="num">Best</th><th class="num">Latest</th><th class="num">Since first</th><th class="num">Results</th></tr></thead><tbody>';
+    evs.forEach(function(ev){var r=resultsOf(n,ev),t=r.map(function(x){return parseTime(x.time);}),best=Math.min.apply(null,t),last=t[t.length-1],since=last-t[0];
+      var sp=r.length<2?'\u2014':(Math.abs(since)<0.005?'0.00':(since<0?'\u2212'+(-since).toFixed(2):'+'+since.toFixed(2)));
+      h+='<tr><td><button class="linkbtn'+(ev===curEvent?' cur':'')+'" data-chartev="'+ev+'">'+ev+'</button></td><td class="num"><strong>'+esc(fmt(best))+'</strong></td><td class="num">'+esc(fmt(last))+'</td><td class="num">'+sp+'</td><td class="num">'+r.length+'</td></tr>';});
+    h+='</tbody></table></div><p class="note">"Since first" is the change from the first logged time to the latest. A minus sign means faster.</p>';
+    h+='<div class="chartbox"><h3>'+esc(curEvent)+' progress</h3><p class="note" style="margin:0 0 6px">Higher on the chart means faster. The orange dot is the personal best. Pick another race in the table above.</p>'+chartSVG(n,curEvent)+'</div>';
+    h+='<div class="sec">All logged times</div><div class="tscroll"><table><thead><tr><th>Date</th><th>Race</th><th class="num">Time</th><th>Change</th><th>Meet or note</th><th></th></tr></thead><tbody>';
+    rs.slice().reverse().forEach(function(r){var a=ann[r.id];
+      h+='<tr><td>'+esc(fmtDate(r.date))+'</td><td>'+esc(r.event)+'</td><td class="num"><strong>'+esc(fmt(parseTime(r.time)))+'</strong></td><td>'+deltaPill(a.delta)+(a.pb&&a.delta!=null?' <span class="pill ok">PB</span>':'')+'</td><td>'+esc(r.meet||'')+'</td><td><button class="btn alt tiny" data-rdel="'+r.id+'">Delete</button></td></tr>';});
+    h+='</tbody></table></div>';
+  }
+  var es=state.entries.filter(function(e){return e.name===n;});
+  if(es.length){
+    h+='<div class="sec">Entered in '+esc(state.meet.name||'this meet')+'</div><div class="tscroll"><table><thead><tr><th>Race</th><th class="num">Entry time</th><th></th></tr></thead><tbody>';
+    es.forEach(function(e){h+='<tr><td>'+esc(e.event)+'</td><td class="num">'+esc(fmt(parseTime(e.time)))+'</td><td><button class="btn alt tiny" data-hist="'+e.id+'">Add to history</button></td></tr>';});
+    h+='</tbody></table></div><p class="note">"Add to history" saves the entry time in this swimmer\u2019s file with today\u2019s date.</p>';
+  }
+  h+='<div style="margin-top:28px"><button class="btn alt tiny" id="delSwimmer">Delete swimmer file</button></div>';
+  return h;
+}
+
+/* downloads */
+var dl=null;
+try{ if(window.claude&&window.claude.use){ window.claude.use('downloads').then(function(d){dl=d;}).catch(function(){}); } }catch(e){}
+function slug(s){return String(s||'meet').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'meet';}
+function csvLine(a){return a.map(function(v){v=String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(',');}
+function getDl(){
+  if(dl) return Promise.resolve(dl);
+  try{ if(window.claude&&window.claude.use) return window.claude.use('downloads').then(function(d){dl=d;return d;}).catch(function(){return null;}); }catch(e){}
+  return Promise.resolve(null);
+}
+function sheetsToTsv(sheets){return (sheets||[]).map(function(s){return s.name+'\n'+s.rows.map(function(r){return r.map(function(v){return String(v).replace(/[\t\r\n]+/g,' ');}).join('\t');}).join('\n');}).join('\n\n');}
+function showFallback(sheets){
+  var ov=document.getElementById('fbov');
+  if(!ov){
+    ov=document.createElement('div');ov.id='fbov';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-label','Copy into Excel');
+    ov.innerHTML='<div class="fbbox"><h3>Copy into Excel</h3><p class="d">This view cannot save files directly. Copy the table below, open Excel or Google Sheets, click cell A1 and paste. The columns will line up.</p><textarea id="fbta" readonly></textarea><div class="btnrow" style="margin-top:12px"><button class="btn yellow" id="fbcopy">Copy table</button><button class="btn alt" id="fbclose">Close</button></div><div class="toast" id="fbmsg" role="status"></div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click',function(e){
+      if(e.target.id==='fbclose'||e.target===ov){ov.style.display='none';return;}
+      if(e.target.id==='fbcopy'){
+        var ta=document.getElementById('fbta'),m=document.getElementById('fbmsg');
+        var manual=function(){ta.focus();ta.select();var ok=false;try{ok=document.execCommand('copy');}catch(x){} m.textContent=ok?'Copied. Paste it into Excel.':'Press Ctrl+C to copy the selected text.';};
+        try{ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(ta.value).then(function(){m.textContent='Copied. Paste it into Excel.';},manual);return;} }catch(x){}
+        manual();
+      }
+    });
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')ov.style.display='none';});
+  }
+  document.getElementById('fbta').value=sheetsToTsv(sheets);
+  document.getElementById('fbmsg').textContent='';
+  ov.style.display='flex';
+  document.getElementById('fbcopy').focus();
+}
+function framed(){try{return window.top!==window.self;}catch(e){return true;}}
+function anchorSave(name,data){
+  try{
+    var blob=(data instanceof Blob)?data:new Blob([data],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    var url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download=name;document.body.appendChild(a);a.click();
+    setTimeout(function(){a.remove();URL.revokeObjectURL(url);},1500);
+    toast('Download started: '+name);return true;
+  }catch(e){return false;}
+}
+function saveFile(name,data,sheets){
+  var fb=function(){ if(!framed()&&anchorSave(name,data)) return; showFallback(sheets); };
+  getDl().then(function(d){
+    if(!d){fb();return;}
+    d.save({filename:name,data:data}).then(function(){toast('Download ready: '+name);},function(e){
+      if(e&&e.code==='declined'){toast('Download cancelled.');return;}
+      fb();
+    });
+  });
+}
+function exportSheets(base,sheets){
+  if(typeof XLSX==='undefined'){showFallback(sheets);return;}
+  var buf;
+  try{buf=xlsxBuffer(sheets);}catch(e){showFallback(sheets);return;}
+  saveFile(base+'.xlsx',buf,sheets);
+}
+function billingSheets(){var b=billingData();return [{name:'Billing',rows:b.summary,cols:[26,40,16,14,12]},{name:'Race detail',rows:b.detail,cols:[26,14,12,10]}];}
+function csvBilling(d){saveFile(slug(state.meet.name)+'-billing.csv','\uFEFF'+d.summary.map(csvLine).join('\r\n'),[{name:'Billing',rows:d.summary}]);}
+function swimmerBlock(n){
+  var rs=resultsOf(n),ann=annotate(n);
+  var evs=EVENTS.filter(function(ev){return rs.some(function(r){return r.event===ev;});});
+  var bests=[['Race','Best time','Latest time','Change since first (s)','Results logged']];
+  evs.forEach(function(ev){var r=resultsOf(n,ev),t=r.map(function(x){return parseTime(x.time);}),best=Math.min.apply(null,t),last=t[t.length-1];bests.push([ev,fmt(best),fmt(last),r.length<2?'':+(last-t[0]).toFixed(2),r.length]);});
+  var all=[['Date','Race','Time','Change vs previous (s)','Personal best','Meet or note']];
+  rs.forEach(function(r){var a=ann[r.id];all.push([r.date,r.event,fmt(parseTime(r.time)),a.delta==null?'':+a.delta.toFixed(2),a.delta==null?'First time':(a.pb?'PB':''),r.meet||'']);});
+  return {bests:bests,all:all};
+}
+function swimmerSheets(n){
+  var b=swimmerBlock(n);
+  var ent=[['Race','Entry time']];
+  state.entries.filter(function(e){return e.name===n;}).sort(byEventIdx).forEach(function(e){ent.push([e.event,fmt(parseTime(e.time))]);});
+  return [{name:'Personal bests',rows:b.bests,cols:[14,12,12,22,14]},{name:'All times',rows:b.all,cols:[12,14,10,22,14,30]},{name:'Meet entries',rows:ent,cols:[14,12]}];
+}
+function allSwimmerSheets(){
+  var ns=sortedNames(),used={};
+  var ov=[['Swimmer','Year of birth','Age','Results logged','Races tracked','Last result']];
+  var sheets=[];
+  ns.forEach(function(n){var rs=resultsOf(n),evs={};rs.forEach(function(r){evs[r.event]=1;});ov.push([n,yobOf(n)||'',ageOf(n)==null?'':ageOf(n),rs.length,Object.keys(evs).length,rs.length?rs[rs.length-1].date:'']);});
+  sheets.push({name:'All swimmers',rows:ov,cols:[28,14,8,16,16,14]});
+  ns.forEach(function(n){
+    var b=swimmerBlock(n),rows=[['Swimmer file: '+n],[],['Personal bests']].concat(b.bests,[[],['All times']],b.all);
+    var nm=n.replace(/[\\\/\?\*\[\]:]/g,'').slice(0,28)||'Swimmer',k=nm,i=2;
+    while(used[k.toLowerCase()]||k==='All swimmers'){k=nm.slice(0,26)+' '+i;i++;}
+    used[k.toLowerCase()]=1;
+    sheets.push({name:k,rows:rows,cols:[22,14,12,22,14,30]});
+  });
+  return sheets;
+}
+function xlsxBuffer(sheets){
+  var wb=XLSX.utils.book_new();
+  sheets.forEach(function(s){var ws=XLSX.utils.aoa_to_sheet(s.rows);ws['!cols']=s.cols.map(function(w){return {wch:w};});XLSX.utils.book_append_sheet(wb,ws,s.name);});
+  return XLSX.write(wb,{bookType:'xlsx',type:'array'});
+}
+function byEventIdx(a,b){return EVENTS.indexOf(a.event)-EVENTS.indexOf(b.event);}
+function billingData(){
+  var total=0;
+  var sum=[['Swimmer','Races','Number of races','Amount']],det=[['Swimmer','Race','Entry time','Fee']];
+  names().forEach(function(n){
+    var es=state.entries.filter(function(e){return e.name===n;}).sort(byEventIdx),sub=0;
+    es.forEach(function(e){var f=effFee(e);sub+=f;det.push([n,e.event,fmt(parseTime(e.time)),+f.toFixed(2)]);});
+    total+=sub;
+    sum.push([n,es.map(function(e){return e.event;}).join(', '),es.length,+sub.toFixed(2)]);
+  });
+  sum.push(['Total','',state.entries.length,+total.toFixed(2)]);
+  det.push(['Total','','',+total.toFixed(2)]);
+  return {summary:sum,detail:det};
+}
+function reportSheets(){
+  var E=state.entries;
+  var a=[['Swimmer','Race','Time']];
+  E.slice().sort(function(x,y){return x.name.localeCompare(y.name)||byEventIdx(x,y);}).forEach(function(e){a.push([e.name,e.event,fmt(parseTime(e.time))]);});
+  var b=[['Race','Place','Swimmer','Time']];
+  EVENTS.forEach(function(ev){E.filter(function(e){return e.event===ev;}).sort(function(x,y){return (parseTime(x.time)||9e9)-(parseTime(y.time)||9e9);}).forEach(function(e,i){b.push([ev,i+1,e.name,fmt(parseTime(e.time))]);});});
+  return [{name:'By swimmer',rows:a,cols:[26,14,12,20]},{name:'By race',rows:b,cols:[14,8,26,12]}];
+}
+
+/* copy helper */
+function copyFrom(id,msg){
+  var ta=document.getElementById(id); if(!ta) return;
+  var text=ta.value;
+  function fallback(){ta.removeAttribute('readonly');ta.focus();ta.select();var ok=false;try{ok=document.execCommand('copy');}catch(e){} toast(ok?msg:'Text selected. Press Ctrl+C (or Copy) to copy it.');}
+  try{ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){toast(msg);},fallback);return;} }catch(e){}
+  fallback();
+}
+
+/* events */
+document.getElementById('side').addEventListener('click',function(ev){
+  var b=ev.target.closest('[data-tab]'); if(!b) return;
+  tab=b.dataset.tab; if(tab==='swimmers')cur=null; render();
+});
+panel.addEventListener('click',function(ev){
+  var t=ev.target;
+  if(t.id==='saveEntry'){
+    var name=document.getElementById('fn').value.trim().replace(/\s+/g,' ');
+    var event=document.getElementById('fe').value;
+    var time=document.getElementById('ft').value.trim();
+    var err=document.getElementById('err');
+    if(!name){err.textContent='Enter the swimmer\u2019s name.';return;}
+    var ts=parseTime(time);
+    if(ts==null){err.textContent='Enter the time like 1:08.45 or 34.50.';return;}
+    time=fmt(ts);
+    if(editId){state.entries.forEach(function(e){if(e.id===editId){e.name=name;e.event=event;e.time=time;}});editId=null;}
+    else state.entries.push({id:uid(),name:name,event:event,time:time});
+    save();render();
+    var n=document.getElementById('fn'); if(n&&!editId)n.focus();
+    return;
+  }
+  if(t.id==='cancelEdit'){editId=null;render();return;}
+  var ed=t.closest('[data-edit]'); if(ed){editId=ed.dataset.edit;render();window.scrollTo({top:0,behavior:'smooth'});return;}
+  var dl=t.closest('[data-del]'); if(dl){var id=dl.dataset.del;state.entries=state.entries.filter(function(e){return e.id!==id;});delete selected[id];if(editId===id)editId=null;save();render();return;}
+  if(t.id==='clearAll'){ if(t.dataset.confirm){state.entries=[];selected={};editId=null;save();render();} else {t.dataset.confirm='1';t.textContent='Click again to delete all';} return;}
+  var k=t.closest('[data-kind]'); if(k){reportKind=k.dataset.kind;render();return;}
+  if(t.id==='copyOut'){copyFrom('out','Copied. Paste it into your email or spreadsheet.');return;}
+  if(t.id==='copyMsg'){
+    var who={};state.entries.forEach(function(e){if(selected[e.id])who[e.name]=1;});
+    var wl=Object.keys(who); var ta=document.getElementById('mtext');
+    if(!ta.value.trim()){toast('Write a message first.');return;}
+    var full=(wl.length?'To: '+wl.join(', ')+'\n\n':'')+ta.value;
+    var tmp=document.createElement('textarea');tmp.id='tmpcopy';tmp.value=full;tmp.style.cssText='position:fixed;left:-9999px;top:0';document.body.appendChild(tmp);
+    var done=function(m){toast(m);tmp.remove();};
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(full).then(function(){done('Message copied.');},function(){tmp.select();var ok=false;try{ok=document.execCommand('copy');}catch(e){}done(ok?'Message copied.':'Copy blocked. Select the message text and copy it.');});return;} }catch(e){}
+    tmp.select();var ok=false;try{ok=document.execCommand('copy');}catch(e){}done(ok?'Message copied.':'Copy blocked. Select the message text and copy it.');
+    return;
+  }
+});
+panel.addEventListener('change',function(ev){
+  var t=ev.target;
+  if(t.id==='sortBy'){sortBy=t.value;render();return;}
+  if(t.id==='selAll'){sorted().forEach(function(e){selected[e.id]=t.checked;});render();return;}
+  if(t.classList.contains('sel')){selected[t.dataset.id]=t.checked;
+    var all=document.getElementById('selAll'); if(all)all.checked=state.entries.every(function(e){return selected[e.id];});return;}
+});
+panel.addEventListener('input',function(ev){
+  var t=ev.target;
+});
+panel.addEventListener('focusout',function(ev){
+  var t=ev.target;
+  if(t.classList&&t.classList.contains('qin')){
+    var v=t.value.trim(); var ts=parseTime(v);
+    if(v===''){delete state.quals[t.dataset.ev];}
+    else if(ts!=null){state.quals[t.dataset.ev]=fmt(ts);}
+    save(); if(tab==='qual') render();
+  }
+});
+panel.addEventListener('keydown',function(ev){
+  if(ev.key==='Enter'&&(ev.target.id==='fn'||ev.target.id==='ft'||ev.target.id==='fe')){ev.preventDefault();document.getElementById('saveEntry').click();}
+  if(ev.key==='Enter'&&ev.target.classList.contains('qin')){ev.target.blur();}
+});
+
+panel.addEventListener('click',function(ev){
+  var t=ev.target;
+  var o=t.closest('[data-open]'); if(o){tab='swimmers';cur=o.dataset.open;curEvent=null;render();window.scrollTo({top:0,behavior:'smooth'});return;}
+  if(t.id==='backList'){cur=null;render();return;}
+  if(t.id==='addSwimmer'){
+    var name=document.getElementById('ns').value.trim().replace(/\s+/g,' ');
+    if(!name){document.getElementById('err').textContent='Enter the swimmer\u2019s name.';return;}
+    var ex=allNames().filter(function(x){return x.toLowerCase()===name.toLowerCase();})[0];
+    if(ex){cur=ex;curEvent=null;render();return;}
+    var yv=((document.getElementById('nyob')||{}).value||'').trim(),yob=null;
+    if(yv){yob=validYob(yv);if(yob==null){document.getElementById('err').textContent='Enter a year of birth like 2014.';return;}}
+    state.swimmers.push(name);state.profiles[name]=yob?{yob:yob}:{};save();cur=name;curEvent=null;render();return;
+  }
+  if(t.id==='saveResult'){
+    var err=document.getElementById('err');
+    var event=document.getElementById('rev').value,time=document.getElementById('rt').value.trim(),date=document.getElementById('rd').value,note=document.getElementById('rn').value.trim();
+    var ts=parseTime(time);
+    if(ts==null){err.textContent='Enter the time like 1:08.45 or 34.50.';return;}
+    if(!date){err.textContent='Choose the date of the swim.';return;}
+    state.results.push({id:uid(),name:cur,event:event,time:fmt(ts),date:date,meet:note,at:Date.now()});
+    curEvent=event;save();render();
+    var rt=document.getElementById('rt');if(rt)rt.focus();
+    return;
+  }
+  var rd=t.closest('[data-rdel]'); if(rd){var id=rd.dataset.rdel;state.results=state.results.filter(function(r){return r.id!==id;});save();render();return;}
+  var ce=t.closest('[data-chartev]'); if(ce){curEvent=ce.dataset.chartev;render();return;}
+  var hh=t.closest('[data-hist]'); if(hh){
+    var en=state.entries.filter(function(e){return e.id===hh.dataset.hist;})[0];
+    if(en){state.results.push({id:uid(),name:en.name,event:en.event,time:en.time,date:today(),meet:state.meet.name||'',at:Date.now()});curEvent=en.event;save();render();toast('Added to '+en.name+'\u2019s history.');}
+    return;
+  }
+  if(t.id==='delSwimmer'){
+    if(t.dataset.confirm){removeSwimmer(cur);cur=null;save();render();}
+    else{t.dataset.confirm='1';t.textContent='Click again to delete this file and all entries';}
+    return;
+  }
+});
+panel.addEventListener('keydown',function(ev){
+  if(ev.key!=='Enter')return;
+  var id=ev.target.id;
+  if(id==='rt'||id==='rn'||id==='rd'){ev.preventDefault();document.getElementById('saveResult').click();}
+  if(id==='ns'){ev.preventDefault();document.getElementById('addSwimmer').click();}
+});
+
+panel.addEventListener('click',function(ev){
+  var id=ev.target.id;
+  if(id==='xlsReport'||id==='xlsBilling'){
+    
+    try{
+      if(id==='xlsReport') exportSheets(slug(state.meet.name)+'-reports',reportSheets());
+      else exportSheets(slug(state.meet.name)+'-billing',billingSheets());
+    }catch(e){toast('Could not create the Excel file.');}
+    return;
+  }
+  if(id==='csvBilling'){
+    var d=billingData(); csvBilling(d); return;
+    saveFile(slug(state.meet.name)+'-billing.csv','\uFEFF'+d.summary.map(csvLine).join('\r\n'));
+    return;
+  }
+});
+
+panel.addEventListener('click',function(ev){
+  var id=ev.target.id;
+  if(id==='xlsSwimmer'&&cur) exportSheets(slug(cur)+'-swimmer-file',swimmerSheets(cur));
+  if(id==='xlsAllSwimmers') exportSheets(slug(state.meet.name)+'-all-swimmer-files',allSwimmerSheets());
+});
+
+panel.addEventListener('change',function(ev){
+  var t=ev.target;
+  if(t.classList&&t.classList.contains('bfee')){
+    var v=parseFloat(String(t.value).replace(',','.'));
+    if(!isNaN(v)&&v>=0){state.entries.forEach(function(e){if(e.id===t.dataset.id)e.fee=+v.toFixed(2);});save();}
+    render();return;
+  }
+  if(t.id==='deffee'){
+    var d=parseFloat(String(t.value).replace(',','.'));
+    if(!isNaN(d)&&d>=0){state.meet.fee=+d.toFixed(2);save();}
+    render();return;
+  }
+});
+panel.addEventListener('click',function(ev){
+  if(ev.target.id==='applyFee'){
+    var d=parseFloat(state.meet.fee)||0;
+    state.entries.forEach(function(e){e.fee=d;});save();render();
+    toast('Every entry is now '+d.toFixed(2)+'.');
+  }
+});
+panel.addEventListener('keydown',function(ev){
+  if(ev.key==='Enter'&&ev.target.classList&&(ev.target.classList.contains('bfee')||ev.target.id==='deffee')){ev.preventDefault();ev.target.blur();}
+});
+
+function entriesSheets(){
+  var rows=[['Swimmer','Race','Time']];
+  state.entries.slice().sort(function(x,y){return x.name.localeCompare(y.name)||byEventIdx(x,y);}).forEach(function(e){rows.push([e.name,e.event,fmt(parseTime(e.time))]);});
+  return [{name:'Entries',rows:rows,cols:[26,14,12]}];
+}
+function qualSheets(){
+  var rows=[['Race','Qualifying time','Swimmer','Entry time','Qualified']];
+  EVENTS.forEach(function(ev){
+    state.entries.filter(function(e){return e.event===ev;}).sort(function(a,b){return (parseTime(a.time)||9e9)-(parseTime(b.time)||9e9);}).forEach(function(e){
+      var st=status(e);
+      rows.push([ev,state.quals[ev]||'',e.name,fmt(parseTime(e.time)),st.c==='ok'?'Yes':(st.c==='no'?'No':'No standard set')]);
+    });
+  });
+  return [{name:'Qualification',rows:rows,cols:[14,16,26,12,16]}];
+}
+function uniqSheets(sheets){
+  var used={};
+  sheets.forEach(function(sh){
+    var base=sh.name.slice(0,27),k=sh.name.slice(0,31),i=2;
+    while(used[k.toLowerCase()]){k=base+' '+i;i++;}
+    used[k.toLowerCase()]=1;sh.name=k;
+  });
+  return sheets;
+}
+function everythingSheets(){
+  return uniqSheets(entriesSheets().concat(qualSheets(),billingSheets(),paymentsSheets(),recordsSheets(),allSwimmerSheets()));
+}
+document.getElementById('side').addEventListener('click',function(ev){
+  if(ev.target.id==='xlsAll') exportSheets(slug(state.meet.name)+'-everything',everythingSheets());
+});
+panel.addEventListener('click',function(ev){
+  var id=ev.target.id;
+  if(id==='xlsEntries') exportSheets(slug(state.meet.name)+'-entries',entriesSheets());
+  if(id==='xlsQual') exportSheets(slug(state.meet.name)+'-qualification',qualSheets());
+});
+
+panel.addEventListener('click',function(ev){
+  var t=ev.target;
+  var rm=t.closest('[data-rm]');
+  if(rm){
+    if(rm.dataset.confirm){removeSwimmer(rm.dataset.rm);save();render();}
+    else{rm.dataset.confirm='1';rm.textContent='Click again to remove';}
+    return;
+  }
+  if(t.id==='saveProfile'){
+    var nn=document.getElementById('pn').value.trim().replace(/\s+/g,' '),err=document.getElementById('perr');
+    if(!nn){err.textContent='Enter the swimmer\u2019s name.';return;}
+    var clash=allNames().filter(function(x){return x!==cur&&x.toLowerCase()===nn.toLowerCase();})[0];
+    if(clash){err.textContent='A swimmer called '+clash+' already exists.';return;}
+    var yv=document.getElementById('pyob').value.trim(),yob=null;
+    if(yv){yob=validYob(yv);if(yob==null){err.textContent='Enter a year of birth like 2014.';return;}}
+    renameSwimmer(cur,nn);
+    if(state.swimmers.indexOf(nn)<0) state.swimmers.push(nn);
+    state.profiles[nn]=yob?{yob:yob}:{};
+    cur=nn;save();render();return;
+  }
+  if(t.id==='xlsRecords'){exportSheets(slug(state.meet.name)+'-records',recordsSheets());return;}
+  if(t.id==='xlsPay'){exportSheets('coaching-fees-'+payMonth,paymentsSheets());return;}
+  if(t.id==='applyCoachFee'){
+    var d=parseFloat(state.coachFee)||0;
+    allNames().forEach(function(n){state.fees[n]=d;});save();render();toast('Every swimmer is now '+d.toFixed(2)+' a month.');return;
+  }
+  if(t.id==='addPay'){
+    var n=document.getElementById('pws').value,amt=parseFloat(String(document.getElementById('pwa').value).replace(',','.')),dt=document.getElementById('pwd').value,note=document.getElementById('pwn').value.trim(),er=document.getElementById('err');
+    if(isNaN(amt)||amt<=0){er.textContent='Enter the amount paid.';return;}
+    if(!dt){er.textContent='Choose the date paid.';return;}
+    state.payments.push({id:uid(),name:n,period:payMonth,date:dt,amount:+amt.toFixed(2),note:note,at:Date.now()});
+    save();render();return;
+  }
+  var mp=t.closest('[data-markpaid]');
+  if(mp){
+    var nm=mp.dataset.markpaid,bal=feeOf(nm)-paidIn(nm,payMonth);
+    if(bal>0.004){state.payments.push({id:uid(),name:nm,period:payMonth,date:today(),amount:+bal.toFixed(2),note:'Paid in full',at:Date.now()});save();render();}
+    return;
+  }
+  var pd=t.closest('[data-pdel]');
+  if(pd){var pid=pd.dataset.pdel;state.payments=state.payments.filter(function(p){return p.id!==pid;});save();render();return;}
+});
+panel.addEventListener('change',function(ev){
+  var t=ev.target;
+  if(t.id==='fltYear'){fYear=t.value;render();return;}
+  if(t.id==='swSort'){swSort=t.value;render();return;}
+  if(t.id==='recEv'){recEv=t.value;render();return;}
+  if(t.id==='recYear'){recYear=t.value;render();return;}
+  if(t.id==='payMonth'){if(t.value)payMonth=t.value;render();return;}
+  if(t.id==='coachFee'){var d=parseFloat(String(t.value).replace(',','.'));if(!isNaN(d)&&d>=0){state.coachFee=+d.toFixed(2);save();}render();return;}
+  if(t.classList&&t.classList.contains('cfee')){
+    var v=parseFloat(String(t.value).replace(',','.'));
+    if(!isNaN(v)&&v>=0){state.fees[t.dataset.n]=+v.toFixed(2);save();}
+    render();return;
+  }
+});
+panel.addEventListener('keydown',function(ev){
+  if(ev.key!=='Enter')return;
+  var t=ev.target;
+  if(t.classList&&t.classList.contains('cfee')||t.id==='coachFee'){ev.preventDefault();t.blur();}
+  if(t.id==='pn'||t.id==='pyob'){ev.preventDefault();document.getElementById('saveProfile').click();}
+  if(t.id==='nyob'){ev.preventDefault();document.getElementById('addSwimmer').click();}
+  if(t.id==='pwa'||t.id==='pwn'){ev.preventDefault();document.getElementById('addPay').click();}
+});
+
+render();
+initDb();
+</script>
+
+</body>
+</html>
+
