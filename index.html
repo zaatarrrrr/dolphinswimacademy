@@ -191,7 +191,7 @@ function poll(){
     if(x.j.version!==ver&&x.j.data) applyRemote(x.j.data,x.j.version);
   }).catch(function(){});
 }
-function initDb(){ pull(); setInterval(poll,30000); }
+function initDb(){ pull(); setInterval(poll,10000); }
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 
@@ -993,4 +993,3 @@ initDb();
 
 </body>
 </html>
-
